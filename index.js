@@ -1,7 +1,6 @@
 var http = require('http'),
     auth = require('./credentials.js').auth,
     request = require('request'),
-    _ = require('underscore'),
     Twitter = require('node-twitter');
 
 http.createServer(function (req, res) {
@@ -22,14 +21,13 @@ http.get(options, function(resp){
 		  if (data.hasOwnProperty(key)) {
 		  	var titre = data[key].title,
 		  		url = data[key].fullurl;
+                console.log(titre, url);
 		  }
 		}
 	});
 }).on("error", function(e){
 	console.log("Got error: " + e.message);
 });
-
-console.log('Server running at http://127.0.0.1:1337/');
 
 var nytBaseUrl = "http://api.nytimes.com",
     nytFormat = ".json",
@@ -53,7 +51,7 @@ function getRandomArticle(dataset){
     var lucky = Math.floor(Math.random() * dataset.length);
     for (var i = 0; i < dataset.length; i++) {
         if(i == lucky){
-            tweetIt(dataset[i]);
+            // tweetIt(dataset[i]);
             // pickedArticle = dataset[i];
             // console.log(pickedArticle);
         }
