@@ -4,3 +4,4 @@ var auth = {
     TOKEN: "XXX-XXXXXXX",
     TOKEN_SECRET: "XXXXXXX"
 }
+exports.auth = auth;
