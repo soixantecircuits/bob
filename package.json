@@ -1,0 +1,26 @@
+{
+  "name": "bob",
+  "version": "0.0.0",
+  "description": "What is BOB ? Baby don't push me no more",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soixantecircuits/bob.git"
+  },
+  "keywords": [
+    "bob"
+  ],
+  "author": "abattut & hugohil",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/soixantecircuits/bob/issues"
+  },
+  "homepage": "https://github.com/soixantecircuits/bob",
+  "dependencies": {
+    "node-twitter": "^0.5.2",
+    "request": "^2.39.0"
+  }
+}
