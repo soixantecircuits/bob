@@ -58,16 +58,23 @@ function getPageYearWiki(date){
 			}
 		} while (!isGood);
 
-		// on enlève tous les [ et les ]
-		eventFinal = eventFinal.replace(/[\[\]]+/g, '');
-		// on enlèves tous les chaines qui commencent par & et qui finissent par ;
+		eventFinal = date+" "+eventFinal;
+		eventFinal = eventFinal.replace(/[\[\]\(\)\']+/g, '');
 		eventFinal = eventFinal.replace(/&[a-z]+;/g, '');
+		eventFinal = eventFinal.replace(/<[^>]*>/g, '');
+		eventFinal = String(eventFinal);
 
-		console.log(eventFinal);
+		if(eventFinal.length<140){
+			tweetWiki(eventFinal);
+		} else {
+			eventFinal = eventFinal.substring(0, 137);
+			eventFinal+= "...";
+			tweetWiki(eventFinal);
+		}
 	});
 }
 
-getPageYearWiki("1515");
+getPageYearWiki("1516");
 
 // Get the page name and his url
 function searchOnePageWiki(pageName){
@@ -89,7 +96,6 @@ function searchOnePageWiki(pageName){
 	}).on("error", function(e){
 		console.log("Got error: " + e.message);
 	});
-
 }
 
 
@@ -122,7 +128,14 @@ function getRandomArticle(dataset){
     };
 }
 
-function tweetIt(opt){
+var twitterClient = new Twitter.RestClient(
+    auth.twitter.API_KEY,
+    auth.twitter.API_SECRET,
+    auth.twitter.TOKEN,
+    auth.twitter.TOKEN_SECRET
+);
+
+function tweetItNYT(opt){
     if(opt.multimedia[0]){
         twitterClient.statusesUpdateWithMedia({
                 'status': opt.headline.main + "\n" + opt.web_url,
@@ -141,12 +154,14 @@ function tweetIt(opt){
     }
 }
 
-var twitterClient = new Twitter.RestClient(
-    auth.twitter.API_KEY,
-    auth.twitter.API_SECRET,
-    auth.twitter.TOKEN,
-    auth.twitter.TOKEN_SECRET
-);
+function tweetWiki(tweetString){
+	twitterClient.statusesUpdate({
+	        'status': tweetString,
+	    }, function (err, res){
+	        if(err) console.log(err);
+	        if(res) console.log(res);
+	    });
+}
 
 // twitterClient.statusesUpdate({
 //         'status': 'Hello world.'
