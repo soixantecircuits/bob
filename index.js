@@ -4,6 +4,14 @@ var http = require('http'),
     Twitter = require('node-twitter'),
     wiki = require('nodemw');
 
+
+var year = 1492;
+var ListOfMonths = new Array ("January", "February", "March", "April", "May", "June", "July","August", "September", "October", "November", "December");
+var DateTrouvee = 1234;
+var eventFinal= "Evenement Vide";
+var numberLoop = 0;
+var worldAlive = true;
+
 http.createServer(function (req, res) {
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end('BOB\n');
@@ -18,63 +26,104 @@ var clientWiki = new wiki({
 });
 
 // Get one event from a date
-function getPageYearWiki(date){
-	clientWiki.getArticle(date, function(data) {
-		// Découpe l'article en plusieurs morceaux
-		var array = data.split("== Events =="),
-			eventsBrut = [],
-			eventsClean = [],
-			isGood = false,
-			eventFinal;
+function getPageYearWiki(year){
+	if(worldAlive){
+		// On tire un jour dans l'année au hasard, et on affiche sa page wikipedia
+		var NumDay = Math.floor(Math.random()*28 + 1);
+		var NumMonth = Math.floor(Math.random()*ListOfMonths.length);
+		date=(String(ListOfMonths[NumMonth])+"_"+String(NumDay));
 
+		var stopLoop = false;
+		clientWiki.getArticle(date, function(data) {
 
-		array = array[1];
-		array = array.split("==");
+			// On ne prend que ce que les "Events" de la page tirée au sort
+			data=data.substring(data.indexOf("==Events==")+10,data.indexOf("==Births=="));
 
-		// Obtenir tous les events, mais dans des catégories
-		for(i=0; i<array.length; i++){
-			if(array[i].length>100) {
-				var item = array[i].split("*");
-				eventsBrut.push(item);
-			}
-		}
-		// Obtenir juste la liste de tous les events
-		for(i=0; i<eventsBrut.length; i++){
-			for(key in eventsBrut[i]){
-				var item = eventsBrut[i][key];
-				if(item.length>0){
-					eventsClean.push(item);
-					// On rempli avec les items
+			array = data.split("*");
+
+			for(i=0; i<array.length; i++){
+				var eventTemp =array[i];
+				var DateDebut = eventTemp.indexOf("[[");
+				// Ajouter 2 à DateDebut pour choper le début de la chaine de caractere contenant l'année
+				var DateFin= eventTemp.indexOf("]]");
+				// DateFin est directement la bonne valeur
+				DateTrouvee = parseInt(eventTemp.substring(DateDebut+2,DateFin).trim());
+
+				if(year == DateTrouvee){
+					stopLoop=true;
+					eventFinal=array[i];
+					eventFinal = eventFinal.replace(/[\[\]\(\)\']+/g, '');
+					eventFinal = eventFinal.replace(/&[a-z]+;/g, '');
+					eventFinal = eventFinal.replace(/<[^>]*>/g, '');
+					eventFinal = String(eventFinal);
+					eventFinal = date.replace("_"," ") + " "+ eventFinal;
+					
+					if(eventFinal.length>140){
+						eventFinal = eventFinal.substring(0, 137);
+						eventFinal+= "...";
+					}
 				}
 			}
-		}
-		// Obtenir un event qui soit plus long que 30 charactères
-		do {
-			var indexRandom =  Math.floor(Math.random() * (eventsClean.length - 0 + 1) + 0);
-			var item = eventsClean[indexRandom];
-			if(item.length>30){
-				eventFinal = item;
-				isGood = true;
-			}
-		} while (!isGood);
-
-		eventFinal = date+" "+eventFinal;
-		eventFinal = eventFinal.replace(/[\[\]\(\)\']+/g, '');
-		eventFinal = eventFinal.replace(/&[a-z]+;/g, '');
-		eventFinal = eventFinal.replace(/<[^>]*>/g, '');
-		eventFinal = String(eventFinal);
-
-		if(eventFinal.length<140){
-			tweetWiki(eventFinal);
-		} else {
-			eventFinal = eventFinal.substring(0, 137);
-			eventFinal+= "...";
-			tweetWiki(eventFinal);
-		}
-	});
+			loopDate(stopLoop, eventFinal);
+		});
+	}
 }
 
-getPageYearWiki("1516");
+function loopDate(stopLoop, eventFinal){
+	if(worldAlive){
+		if(!stopLoop){
+			if(numberLoop<365){
+				getPageYearWiki(year);
+			} else {
+				year++;
+				getPageYearWiki(year);
+				numberLoop = 0;
+			}
+			numberLoop++;
+		} else {
+			year++;
+			numberLoop=0;
+			console.log(eventFinal);
+			//tweetWiki(eventFinal);
+			var interval = 1; // en minutes
+			interval*=60000;
+			setTimeout(function(){
+				getPageYearWiki(year);
+			}, interval);
+		}
+	}
+}
+function destroyWorld(){
+	worldAlive = false;
+	year = 1492;
+	var countdownDestroy = ["3", "2", "1"];
+	var launchSentence = "Missiles engaged";
+	var destroySentence = "BOB's world is dead";
+
+	var interval = 1000;
+
+	for(i=0; i<countdownDestroy.length; i++){
+		setTimeout(function(){
+			tweetWiki(countdownDestroy[i])
+		}, interval);
+		interval+=1000;
+	}
+	setTimeout(function(){
+		twitterClient.statusesUpdateWithMedia({
+		        'status': launchSentence,
+		        'media[]': 'http://lotekness.net/wp-content/uploads/2012/12/Nuclear-Mushroom-Cloud.jpeg'
+		    }, function (error, result) {
+		        if (error) console.log('Error: ' + (error.code ? error.code + ' ' + error.message : error.message));
+		        if (result) console.log(result);
+		    });
+	}, interval);
+	interval+=1000;
+
+	setTimeout(function(){
+		tweetWiki(destroySentence);
+	}, interval);
+}
+getPageYearWiki(year);
 
 // Get the page name and his url
 function searchOnePageWiki(pageName){
@@ -89,7 +138,7 @@ function searchOnePageWiki(pageName){
 			  if (data.hasOwnProperty(key)) {
 			  	var titre = data[key].title,
 			  		url = data[key].fullurl;
-			  	console.log(titre, url);
+			  		console.log(titre, url);
 			  }
 			}
 		});
