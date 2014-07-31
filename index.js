@@ -122,6 +122,11 @@ function destroyWorld(){
 	setTimeout(function(){
 		tweetWiki(destroySentence);
 	}, interval);
+	interval+=1000;
+
+	setTimeout(function(){
+		getPageYearWiki(year);
+	}, interval);
 }
 getPageYearWiki(year);
 
